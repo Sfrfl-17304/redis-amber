@@ -1,12 +1,13 @@
+#include <string>
 #include <unistd.h>
 #include <cstdlib>
-#include <memory>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <iostream>
 
 
 int main() {
@@ -57,6 +58,35 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
+char buffer[1024];
+size_t total_read = 0;
+while(1){
+    ssize_t n = read(accept_result, buffer + total_read, sizeof(buffer)-total_read-1);
+    if (n == -1){
+        perror("read");
+        exit(EXIT_FAILURE);
+    }
 
+
+    if (n > 0){
+        total_read += n;
+        buffer[total_read] = '\0';
+        printf("got something %s\n", buffer + total_read - n);
+        if (strncmp(buffer + total_read - n, "PING", 4) == 0){
+            printf("returning PONG...");
+            std::string response = "PONG\r\n";
+            ssize_t write_result = write(accept_result, response.c_str(), response.length()+1);
+            if (write_result == -1){
+                perror("write");
+                exit(EXIT_FAILURE);
+            }
+        }
+
+
+    }
+    if (n == 0) {
+        printf("no data");
+    }
+}
 
 }
