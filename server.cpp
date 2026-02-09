@@ -72,14 +72,21 @@ while(1){
         total_read += n;
         buffer[total_read] = '\0';
         printf("got something %s\n", buffer + total_read - n);
+        std::string response = "";
+        ssize_t write_result = 0;
         if (strncmp(buffer + total_read - n, "PING", 4) == 0){
-            printf("returning PONG...");
-            std::string response = "PONG\r\n";
-            ssize_t write_result = write(accept_result, response.c_str(), response.length()+1);
-            if (write_result == -1){
-                perror("write");
-                exit(EXIT_FAILURE);
-            }
+            printf("returning PONG...\n");
+            response = "PONG\r\n";
+            write_result = write(accept_result, response.c_str(), response.length()+1);
+
+        } else if (strncmp(buffer + total_read - n, "ECHO", 4) == 0){
+            response = (buffer + total_read - n) + 5;
+            write_result = write(accept_result, response.c_str(), response.length()+1);
+        }
+
+        if (write_result == -1){
+            perror("write");
+            exit(EXIT_FAILURE);
         }
 
 
